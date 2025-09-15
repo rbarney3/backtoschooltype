@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Typing Game – 3 Random Sentences</title>
+<style>
+  body {
+    font-family: Comic Sans MS, sans-serif;
+    background-color: #e6e6fa;
+    text-align: center;
+    padding: 20px;
+  }
+  #sentence {
+    font-size: 28px;
+    margin: 20px auto;
+    padding: 10px;
+    border: 2px solid #999;
+    border-radius: 10px;
+    background: white;
+    width: 80%;
+  }
+  #sentence span.correct { color: green; }
+  #sentence span.incorrect { color: red; }
+  #inputBox {
+    font-size: 24px;
+    padding: 8px;
+    width: 80%;
+    margin: 20px;
+  }
+  #timer, #results {
+    font-size: 22px;
+    margin: 10px;
+  }
+  button {
+    font-size: 20px;
+    padding: 8px 16px;
+    margin-top: 15px;
+    cursor: pointer;
+    border-radius: 10px;
+    border: none;
+    background: #9370db;
+    color: white;
+  }
+  button:hover { background: #6a5acd; }
+</style>
+</head>
+<body>
+<h1>Back-to-School Typing Game</h1>
+<div id="timer">Time: 0s</div>
+<div id="sentence"></div>
+<input type="text" id="inputBox" placeholder="Start typing here..." disabled>
+<div id="results"></div>
+<button id="startBtn">Start Game</button>
+<button id="restartBtn" style="display:none;">Start Again</button>
+
+<script>
+const allSentences = [
+  "CID stands for computer science, innovation and design.",
+  "STEM stands for Science, Technology, Engineering, and Mathematics.",
+  "I will use my imagination as I get to design.",
+  "I love getting to use the Magic Bin.",
+  "I will use the engineer design process.",
+  "I will use my chromebook safely, respectfully, and responsibly.",
+  "In CID class, we share our ideas!",
+  "What can I build with Legos?",
+  "Where will STEM take you?"
+];
+
+let chosenSentences = [];
+let currentIndex = 0;
+let startTime, timerInterval;
+let totalTyped = 0;
+
+const sentenceEl = document.getElementById("sentence");
+const inputBox   = document.getElementById("inputBox");
+const timerEl    = document.getElementById("timer");
+const resultsEl  = document.getElementById("results");
+const startBtn   = document.getElementById("startBtn");
+const restartBtn = document.getElementById("restartBtn");
+
+function pickRandomThree() {
+  const shuffled = [...allSentences].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 3);
+}
+
+function showSentence() {
+  const sentence = chosenSentences[currentIndex];
+  sentenceEl.innerHTML = "";
+  for (let char of sentence) {
+    const span = document.createElement("span");
+    span.textContent = char;
+    sentenceEl.appendChild(span);
+  }
+}
+
+function updateHighlight() {
+  const sentence = chosenSentences[currentIndex];
+  const input = inputBox.value;
+  const spans = sentenceEl.querySelectorAll("span");
+  for (let i = 0; i < spans.length; i++) {
+    if (i < input.length) {
+      if (input[i] === sentence[i]) {
+        spans[i].classList.add("correct");
+        spans[i].classList.remove("incorrect");
+      } else {
+        spans[i].classList.add("incorrect");
+        spans[i].classList.remove("correct");
+      }
+    } else {
+      spans[i].classList.remove("correct","incorrect");
+    }
+  }
+}
+
+function startGame() {
+  chosenSentences = pickRandomThree();
+  currentIndex = 0;
+  totalTyped = 0;
+  showSentence();
+  inputBox.value = "";
+  inputBox.disabled = false;
+  inputBox.focus();
+  resultsEl.textContent = "";
+  startBtn.style.display = "none";
+  restartBtn.style.display = "none";
+
+  startTime = new Date();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((new Date() - startTime) / 1000);
+    timerEl.textContent = `Time: ${elapsed}s`;
+  }, 1000);
+}
+
+function finishGame() {
+  clearInterval(timerInterval);
+  inputBox.disabled = true;
+  const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
+  const words = totalTyped / 5;
+  const wpm = Math.round((words / elapsedSeconds) * 60);
+  resultsEl.textContent = `🎉 Game Over! Time: ${elapsedSeconds}s | WPM: ${wpm}`;
+  restartBtn.style.display = "inline-block";
+}
+
+inputBox.addEventListener("input", () => {
+  updateHighlight();
+  const sentence = chosenSentences[currentIndex];
+  totalTyped++;
+  if (inputBox.value === sentence) {
+    currentIndex++;
+    if (currentIndex < chosenSentences.length) {
+      inputBox.value = "";
+      showSentence();
+    } else {
+      finishGame();
+    }
+  }
+});
+
+startBtn.addEventListener("click", startGame);
+restartBtn.addEventListener("click", startGame);
+</script>
+</body>
+</html>
